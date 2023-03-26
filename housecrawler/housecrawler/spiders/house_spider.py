@@ -10,18 +10,67 @@ class HouseSpider(scrapy.Spider):
     # thus you don't have to define method 'start_requestes'
     # start_urls = [...]
 
+    def __init__(self, category=None, *args, **kwargs):
+        super(HouseSpider, self).__init__(*args, **kwargs)
+        self.url_dict = {
+            'Beijing'   : 'https://bj.ke.com/ershoufang/',
+            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
+            'Suzhou'    : 'https://su.ke.com/ershoufang/',
+            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
+            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
+            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
+            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
+            'Chongqing' : 'https://cq.ke.com/ershoufang/',
+            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
+        }
+        # self.url_wait_list = [
+        #     'https://bj.ke.com/ershoufang/',
+        #     'https://gz.ke.com/ershoufang/',
+        #     'https://su.ke.com/ershoufang/',
+        #     'https://hz.ke.com/ershoufang/',
+        #     'https://nj.ke.com/ershoufang/',
+        #     'https://xa.ke.com/ershoufang/',
+        #     'https://cd.ke.com/ershoufang/',
+        #     'https://cq.ke.com/ershoufang/',
+        #     'https://tj.ke.com/ershoufang/',
+        # ]
+        self.all_scraped_data = dict()
+
+    def get_url_city(self, url_str=None):
+        if url_str is None:
+            return "N/A"
+
+        if not isinstance(url_str, str):
+            return "N/A"
+
+        for city, url in self.url_dict.items():
+            if url == url_str:
+                return city
+
+        return "N/A"
+
+    def closed(self, reason):
+        cnum = len(self.all_scraped_data)
+        if cnum == 0:
+            return
+        print(f"[PYRAD] Total city number = {cnum}")
+        for city_name, total_num in self.all_scraped_data.items():
+            print(f"[PYARD] {city_name} = {total_num}")
+
     def start_requests(self):
-        urls = [
-            'https://bj.ke.com/ershoufang/',
-            'https://gz.ke.com/ershoufang/',
-            'https://su.ke.com/ershoufang/',
-            'https://hz.ke.com/ershoufang/',
-            'https://nj.ke.com/ershoufang/',
-            'https://xa.ke.com/ershoufang/',
-            'https://cd.ke.com/ershoufang/',
-            'https://cq.ke.com/ershoufang/',
-            'https://tj.ke.com/ershoufang/',
-        ]
+        # urls = [
+        #     'https://bj.ke.com/ershoufang/',
+        #     'https://gz.ke.com/ershoufang/',
+        #     'https://su.ke.com/ershoufang/',
+        #     'https://hz.ke.com/ershoufang/',
+        #     'https://nj.ke.com/ershoufang/',
+        #     'https://xa.ke.com/ershoufang/',
+        #     'https://cd.ke.com/ershoufang/',
+        #     'https://cq.ke.com/ershoufang/',
+        #     'https://tj.ke.com/ershoufang/',
+        # ]
+        # urls = self.url_wait_list
+        urls = [cur_url for _, cur_url in self.url_dict.items()]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
@@ -55,6 +104,9 @@ class HouseSpider(scrapy.Spider):
         city_name = response.xpath(city_xpath).getall()[0]
         total_num = response.xpath(total_num_xpath).getall()[0]
         print(f"[PYARD] {city_name} = {total_num}")
+
+        city_name = self.get_url_city(response.url)
+        self.all_scraped_data[city_name] = total_num
 
         # filename = f'test.html'
         # Path(filename).write_bytes(response.body)
