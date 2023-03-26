@@ -1,0 +1,3 @@
+# Ignore py cache
+housecrawler/housecrawler/__pycache__/
+housecrawler/housecrawler/spiders/__pycache__/
