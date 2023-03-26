@@ -48,9 +48,13 @@ class HouseSpider(scrapy.Spider):
         total_num_xpath = '//*[@id="beike"]/div[1]/div[4]/div[1]/div[2]/div[1]/h2/span' + '/text()'
         city_xpath = '//*[@id="beike"]/div[1]/div[4]/div[1]/div[2]/div[1]/h2/a' + '/text()'
 
-        print(f"[PYRAD] Current scaping URL: {response.url}")
-        print(f"[PYARD] City = {response.xpath(city_xpath).getall()}")
-        print(f"[PYARD] Total house number = {response.xpath(total_num_xpath).getall()}")
+        # print(f"[PYRAD] Current scaping URL: {response.url}")
+        # print(f"[PYARD] City = {response.xpath(city_xpath).getall()}")
+        # print(f"[PYARD] Total house number = {response.xpath(total_num_xpath).getall()}")
+
+        city_name = response.xpath(city_xpath).getall()[0]
+        total_num = response.xpath(total_num_xpath).getall()[0]
+        print(f"[PYARD] {city_name} = {total_num}")
 
         # filename = f'test.html'
         # Path(filename).write_bytes(response.body)
