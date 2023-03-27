@@ -57,6 +57,32 @@ class HouseSpider(scrapy.Spider):
         for city_name, total_num in self.all_scraped_data.items():
             print(f"[PYARD] {city_name} = {total_num}")
 
+        bj_n = self.all_scraped_data['Beijing']
+        sh_n = "-"
+        shzh_n = "-"
+        gz_n = self.all_scraped_data['Guangzhou']
+        sz_n = self.all_scraped_data['Suzhou']
+        hz_n = self.all_scraped_data['Hangzhou']
+        nj_n = self.all_scraped_data['Nanjing']
+        xa_n = self.all_scraped_data['Xi_an']
+        cd_n = self.all_scraped_data['Chengdu']
+        cq_n = self.all_scraped_data['Chongqing']
+        tj_n = self.all_scraped_data['Tianjin']
+
+        longstr = (f"$$\n"
+                   f"\\begin{{array}}{{ll|ll|ll|ll}}\n"
+                   f"\\hline\n"
+                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} &\n"
+                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} \\\n"
+                   f"\\hline\n"
+                   f"北京 & {bj_n} & 上海 & {sh_n} & 深圳 & {shzh_n} & 广州 & {gz_n} \\\\\n"
+                   f"苏州 & {sz_n} & 杭州 & {hz_n} & 南京 & {nj_n} & 西安 & {xa_n} \\\\\n"
+                   f"成都 & {cd_n} & 重庆 & {cq_n} & 天津 & {tj_n} & - & -\\\\\n"
+                   f"\\hline\n"
+                   f"\\end{{array}}\n"
+                   f"$$\n")
+        print(longstr)
+
     def start_requests(self):
         # urls = [
         #     'https://bj.ke.com/ershoufang/',
