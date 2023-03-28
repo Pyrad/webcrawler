@@ -61,7 +61,11 @@ class HouseSpider(scrapy.Spider):
         # Print current date & time
         dt = datetime.now()
         dt_string = dt.strftime("%Y-%m-%d %H:%M:%S")
+        dt_string1 = dt.strftime("$%Y-%m-%d$")
+        dt_string2 = dt.strftime("$\text{%Y-}\text{%m-}\text{%d-}\text{%H:}\text{%M:}\text{%S}$")
         print(f"{dt_string}")
+        print(f"{dt_string1}")
+        print(f"{dt_string2}")
 
         longstr = (f"$$\n"
                    f"\\begin{{array}}{{ll|ll|ll|ll}}\n"
