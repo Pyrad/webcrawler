@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import scrapy
-
+from datetime import datetime
 
 class HouseSpider(scrapy.Spider):
     # Name must be unique inside this project
@@ -23,17 +23,6 @@ class HouseSpider(scrapy.Spider):
             'Chongqing' : 'https://cq.ke.com/ershoufang/',
             'Tianjin'   : 'https://tj.ke.com/ershoufang/',
         }
-        # self.url_wait_list = [
-        #     'https://bj.ke.com/ershoufang/',
-        #     'https://gz.ke.com/ershoufang/',
-        #     'https://su.ke.com/ershoufang/',
-        #     'https://hz.ke.com/ershoufang/',
-        #     'https://nj.ke.com/ershoufang/',
-        #     'https://xa.ke.com/ershoufang/',
-        #     'https://cd.ke.com/ershoufang/',
-        #     'https://cq.ke.com/ershoufang/',
-        #     'https://tj.ke.com/ershoufang/',
-        # ]
         self.all_scraped_data = dict()
 
     def get_url_city(self, url_str=None):
@@ -69,11 +58,16 @@ class HouseSpider(scrapy.Spider):
         cq_n = self.all_scraped_data['Chongqing']
         tj_n = self.all_scraped_data['Tianjin']
 
+        # Print current date & time
+        dt = datetime.now()
+        dt_string = dt.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{dt_string}")
+
         longstr = (f"$$\n"
                    f"\\begin{{array}}{{ll|ll|ll|ll}}\n"
                    f"\\hline\n"
                    f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} &\n"
-                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} \\\n"
+                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} \\\\\n"
                    f"\\hline\n"
                    f"北京 & {bj_n} & 上海 & {sh_n} & 深圳 & {shzh_n} & 广州 & {gz_n} \\\\\n"
                    f"苏州 & {sz_n} & 杭州 & {hz_n} & 南京 & {nj_n} & 西安 & {xa_n} \\\\\n"
@@ -84,18 +78,7 @@ class HouseSpider(scrapy.Spider):
         print(longstr)
 
     def start_requests(self):
-        # urls = [
-        #     'https://bj.ke.com/ershoufang/',
-        #     'https://gz.ke.com/ershoufang/',
-        #     'https://su.ke.com/ershoufang/',
-        #     'https://hz.ke.com/ershoufang/',
-        #     'https://nj.ke.com/ershoufang/',
-        #     'https://xa.ke.com/ershoufang/',
-        #     'https://cd.ke.com/ershoufang/',
-        #     'https://cq.ke.com/ershoufang/',
-        #     'https://tj.ke.com/ershoufang/',
-        # ]
-        # urls = self.url_wait_list
+        # Set urls list for scraping
         urls = [cur_url for _, cur_url in self.url_dict.items()]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
