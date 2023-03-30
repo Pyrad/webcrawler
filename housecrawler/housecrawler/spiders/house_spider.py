@@ -22,6 +22,11 @@ class HouseSpider(scrapy.Spider):
             'Chengdu'   : 'https://cd.ke.com/ershoufang/',
             'Chongqing' : 'https://cq.ke.com/ershoufang/',
             'Tianjin'   : 'https://tj.ke.com/ershoufang/',
+			'Hefei'		: 'https://hf.ke.com/ershoufang/',
+			'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
+			'Xiamen'	: 'https://xm.ke.com/ershoufang/',
+			'Wuhan'		: 'https://wh.ke.com/ershoufang/',
+			'Changsha'	: 'https://cs.ke.com/ershoufang/',
         }
         self.all_scraped_data = dict()
 
@@ -57,25 +62,31 @@ class HouseSpider(scrapy.Spider):
         cd_n = self.all_scraped_data['Chengdu']
         cq_n = self.all_scraped_data['Chongqing']
         tj_n = self.all_scraped_data['Tianjin']
+        hf_n = self.all_scraped_data['Hefei']
+        fz_n = self.all_scraped_data['Fuzhou']
+        xm_n = self.all_scraped_data['Xiamen']
+        wh_n = "-"
+        cs_n = self.all_scraped_data['Changsha']
 
         # Print current date & time
         dt = datetime.now()
-        dt_string = dt.strftime("%Y-%m-%d %H:%M:%S")
+        dt_string = dt.strftime("$%Y-%m-%d %H:%M:%S$")
         dt_string1 = dt.strftime("$%Y-%m-%d$")
-        dt_string2 = dt.strftime("$\text{%Y-}\text{%m-}\text{%d-}\text{%H:}\text{%M:}\text{%S}$")
+        dt_string2 = dt.strftime("$\\text{%Y-}\\text{%m-}\\text{%d-}\\text{%H:}\\text{%M:}\\text{%S}$")
         print(f"{dt_string}")
         print(f"{dt_string1}")
         print(f"{dt_string2}")
 
         longstr = (f"$$\n"
-                   f"\\begin{{array}}{{ll|ll|ll|ll}}\n"
+                   f"\\begin{{array}}{{lr|lr|lr|lr}}\n"
                    f"\\hline\n"
                    f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} &\n"
                    f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} \\\\\n"
                    f"\\hline\n"
                    f"北京 & {bj_n} & 上海 & {sh_n} & 深圳 & {shzh_n} & 广州 & {gz_n} \\\\\n"
                    f"苏州 & {sz_n} & 杭州 & {hz_n} & 南京 & {nj_n} & 西安 & {xa_n} \\\\\n"
-                   f"成都 & {cd_n} & 重庆 & {cq_n} & 天津 & {tj_n} & - & -\\\\\n"
+                   f"成都 & {cd_n} & 重庆 & {cq_n} & 天津 & {tj_n} & 合肥 & {hf_n} \\\\\n"
+                   f"福州 & {fz_n} & 厦门 & {xm_n} & 武汉 & {wh_n} & 长沙 & {cs_n} \\\\\n"
                    f"\\hline\n"
                    f"\\end{{array}}\n"
                    f"$$\n")
