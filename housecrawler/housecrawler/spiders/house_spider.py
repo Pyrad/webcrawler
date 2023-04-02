@@ -91,6 +91,24 @@ class HouseSpider(scrapy.Spider):
                    f"\\end{{array}}\n"
                    f"$$\n")
         print(longstr)
+		
+        longstr2 = (f"北京 {bj_n}\n"
+                    f"广州 {gz_n}\n"
+                    f"苏州 {sz_n}\n"
+                    f"杭州 {hz_n}\n"
+                    f"南京 {nj_n}\n"
+                    f"西安 {xa_n}\n"
+                    f"成都 {cd_n}\n"
+                    f"重庆 {cq_n}\n"
+                    f"天津 {tj_n}\n"
+                    f"合肥 {hf_n}\n"
+                    f"福州 {fz_n}\n"
+                    f"厦门 {xm_n}\n"
+                    f"长沙 {cs_n}\n"
+                    f"上海 {sh_n}\n"
+                    f"深圳 {shzh_n}\n"
+                    f"武汉 {wh_n}\n")
+        print(longstr2)
 
     def start_requests(self):
         # Set urls list for scraping
