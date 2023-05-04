@@ -91,23 +91,40 @@ class HouseSpider(scrapy.Spider):
                    f"\\end{{array}}\n"
                    f"$$\n")
         print(longstr)
-		
-        longstr2 = (f"北京 {bj_n}\n"
-                    f"广州 {gz_n}\n"
-                    f"苏州 {sz_n}\n"
-                    f"杭州 {hz_n}\n"
-                    f"南京 {nj_n}\n"
-                    f"西安 {xa_n}\n"
-                    f"成都 {cd_n}\n"
-                    f"重庆 {cq_n}\n"
-                    f"天津 {tj_n}\n"
-                    f"合肥 {hf_n}\n"
-                    f"福州 {fz_n}\n"
-                    f"厦门 {xm_n}\n"
-                    f"长沙 {cs_n}\n"
-                    f"上海 {sh_n}\n"
-                    f"深圳 {shzh_n}\n"
-                    f"武汉 {wh_n}\n")
+
+        bj_n_fmtstr = format(bj_n, ",")
+        gz_n_fmtstr = format(gz_n, ",")
+        sz_n_fmtstr = format(sz_n, ",")
+        hz_n_fmtstr = format(hz_n, ",")
+        nj_n_fmtstr = format(nj_n, ",")
+        xa_n_fmtstr = format(xa_n, ",")
+        cd_n_fmtstr = format(cd_n, ",")
+        cq_n_fmtstr = format(cq_n, ",")
+        tj_n_fmtstr = format(tj_n, ",")
+        hf_n_fmtstr = format(hf_n, ",")
+        fz_n_fmtstr = format(fz_n, ",")
+        xm_n_fmtstr = format(xm_n, ",")
+        cs_n_fmtstr = format(cs_n, ",")
+        sh_n_fmtstr = format(sh_n, ",") if isinstance(sh_n, int) else "-"
+        shzh_n_fmtstr = format(shzh_n, ",")  if isinstance(shzh_n, int) else "-"
+        wh_n_fmtstr = format(wh_n, ",")  if isinstance(wh_n, int) else "-"
+
+        longstr2 = (f"北京 {bj_n_fmtstr}\n"
+                    f"广州 {gz_n_fmtstr}\n"
+                    f"苏州 {sz_n_fmtstr}\n"
+                    f"杭州 {hz_n_fmtstr}\n"
+                    f"南京 {nj_n_fmtstr}\n"
+                    f"西安 {xa_n_fmtstr}\n"
+                    f"成都 {cd_n_fmtstr}\n"
+                    f"重庆 {cq_n_fmtstr}\n"
+                    f"天津 {tj_n_fmtstr}\n"
+                    f"合肥 {hf_n_fmtstr}\n"
+                    f"福州 {fz_n_fmtstr}\n"
+                    f"厦门 {xm_n_fmtstr}\n"
+                    f"长沙 {cs_n_fmtstr}\n"
+                    f"上海 {sh_n_fmtstr}\n"
+                    f"深圳 {shzh_n_fmtstr}\n"
+                    f"武汉 {wh_n_fmtstr}\n")
         print(longstr2)
 
     def start_requests(self):
@@ -144,7 +161,7 @@ class HouseSpider(scrapy.Spider):
         # print(f"[PYARD] Total house number = {response.xpath(total_num_xpath).getall()}")
 
         city_name = response.xpath(city_xpath).getall()[0]
-        total_num = response.xpath(total_num_xpath).getall()[0]
+        total_num = int(response.xpath(total_num_xpath).getall()[0])
         print(f"[PYARD] {city_name} = {total_num}")
 
         city_name = self.get_url_city(response.url)
