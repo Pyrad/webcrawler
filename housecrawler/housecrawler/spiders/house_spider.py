@@ -27,6 +27,7 @@ class HouseSpider(scrapy.Spider):
 			'Xiamen'	: 'https://xm.ke.com/ershoufang/',
 			'Wuhan'		: 'https://wh.ke.com/ershoufang/',
 			'Changsha'	: 'https://cs.ke.com/ershoufang/',
+			'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
         }
         self.all_scraped_data = dict()
 
@@ -53,7 +54,7 @@ class HouseSpider(scrapy.Spider):
 
         bj_n = self.all_scraped_data['Beijing']
         sh_n = "-"
-        shzh_n = "-"
+        shzh_n = self.all_scraped_data['Shenzhen']
         gz_n = self.all_scraped_data['Guangzhou']
         sz_n = self.all_scraped_data['Suzhou']
         hz_n = self.all_scraped_data['Hangzhou']
