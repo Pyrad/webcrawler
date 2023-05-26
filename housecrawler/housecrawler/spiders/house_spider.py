@@ -3,8 +3,13 @@ from pathlib import Path
 import scrapy
 from datetime import datetime
 import platform
+import os
+import subprocess
+import re
+import pandas as pd
+import openpyxl
 
-class spreadsheetDataKeeper:
+class SpreadsheetDataKeeper:
 
     @staticmethod
     def get_cpu_name():
@@ -42,7 +47,7 @@ class spreadsheetDataKeeper:
             cpu_name = cpu_name.strip()
         else:
             # Assume current it is running on Linux or other platforms
-            cpu_name = self.get_cpu_name()
+            cpu_name = SpreadsheetDataKeeper.get_cpu_name()
 
         MyAsusPCCpuName = 'Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz'
         MyLenovoCpuName = 'AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx'
@@ -58,7 +63,7 @@ class spreadsheetDataKeeper:
             # If current PC is my work computer from SNSP, don't do anything
             pyradnotes_dir = ""
         else:
-            self.print_error("Can't identify the CPU name ({}) for this PC, please verify.".format(cpu_name))
+            print(f"Can't identify the CPU name ({cpu_name}) for this PC, please verify.")
 
         return pyradnotes_dir, cpu_name
 
@@ -66,6 +71,9 @@ class spreadsheetDataKeeper:
         self.city_list = city_list
         spf_dir, _ = self.get_data_dir_on_this_computer_by_cpu_name()
         self.spfname = spf_dir + "/" + fname
+
+    def xlsx_name(self):
+        return self.spfname
 
     def create_city_resale_spreadsheet_with_header(self, spfname, sheet_name="CityResaleNum"):
 
@@ -77,10 +85,7 @@ class spreadsheetDataKeeper:
             return False
 
         dt_cols = ["Date", "Time", "Weekday", "Week"]
-        city_cols = [ "Beijing", "Guangzhou", "Suzhou", "Hangzhou",
-                      "Nanjing", "Xian", "Chengdu", "Chongqing",
-                      "Tianjin", "Hefei", "Fuzhou", "Xiamen",
-                      "Changsha", "Shanghai", "Shenzhen", "Wuhan",]
+        city_cols = self.city_list
 
         # Header columns, first 4 are date, time, weekday, week, the rest are city names
         # Current there are 16 cities
@@ -99,9 +104,10 @@ class spreadsheetDataKeeper:
 
         return os.path.isfile(spfname)
 
+    @staticmethod
     def get_date_time_value_list():
         #dtime = datetime.date.fromtimestamp(datetime.datetime.now())
-        dtime = datetime.datetime.now()
+        dtime = datetime.now()
         # Date string
         date_str = dtime.strftime("%Y-%m-%d")
         # Time string
@@ -113,25 +119,29 @@ class spreadsheetDataKeeper:
 
         return [date_str, time_str, day_str, week_str]
 
-    def append_data_row_to_spreadsheet(datadict, spfname, sheet_name="CityResaleNum"):
+    def append_data_row_to_spreadsheet(self, data_row, sheet_name="CityResaleNum"):
+
+        spfname = self.spfname
+        assert isinstance(data_row, list) or isinstance(data_row, tuple)
 
         if not isinstance(spfname, str):
             return False
 
         if os.path.isfile(spfname) is False:
-            if create_city_resale_spreadsheet_with_header(spfname, sheet_name) is False:
+            if self.create_city_resale_spreadsheet_with_header(spfname, sheet_name) is False:
                 return False
 
-        #row_val = get_date_time_value_list().extend([13]*16)
-        row_val = get_date_time_value_list()
-        row_val.extend([13]*16)
-        print(row_val)
+        row_val = SpreadsheetDataKeeper.get_date_time_value_list()
+        row_val.extend(data_row)
+        #print(row_val)
 
         # Use openpyxl directly to append rows to an existing spreadsheet
         wb = openpyxl.load_workbook(spfname)
         ws = wb.worksheets[0]
         ws.append(row_val)
         wb.save(spfname)
+
+        return True
 
 
 class HouseSpider(scrapy.Spider):
@@ -144,63 +154,37 @@ class HouseSpider(scrapy.Spider):
     def __init__(self, category=None, *args, **kwargs):
         super(HouseSpider, self).__init__(*args, **kwargs)
 
-            'Beijing'   : 'https://bj.ke.com/ershoufang/',
-            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
-            'Suzhou'    : 'https://su.ke.com/ershoufang/',
-            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
-            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
-            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
-            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
-            'Chongqing' : 'https://cq.ke.com/ershoufang/',
-            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
-            'Hefei'     : 'https://hf.ke.com/ershoufang/',
-            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
-            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
-            'Changsha'	: 'https://cs.ke.com/ershoufang/',
-            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
-            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
-            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
+        city_name_list = ['Beijing', 'Guangzhou', 'Suzhou', 'Hangzhou',
+                          'Nanjing', 'Xi_an', 'Chengdu', 'Chongqing',
+                          'Tianjin', 'Hefei', 'Fuzhou', 'Xiamen',
+                          'Changsha', 'Shanghai', 'Shenzhen', 'Wuhan',]
+        city_url_list = ['https://bj.ke.com/ershoufang/',
+                          'https://gz.ke.com/ershoufang/',
+                          'https://su.ke.com/ershoufang/',
+                          'https://hz.ke.com/ershoufang/',
+                          'https://nj.ke.com/ershoufang/',
+                          'https://xa.ke.com/ershoufang/',
+                          'https://cd.ke.com/ershoufang/',
+                          'https://cq.ke.com/ershoufang/',
+                          'https://tj.ke.com/ershoufang/',
+                          'https://hf.ke.com/ershoufang/',
+                          'https://fz.ke.com/ershoufang/',
+                          'https://xm.ke.com/ershoufang/',
+                          'https://cs.ke.com/ershoufang/',
+                          'https://sh.ke.com/ershoufang/',
+                          'https://sz.ke.com/ershoufang/',
+                          'https://wh.ke.com/ershoufang/',]
 
-            'Beijing'   : 'https://bj.ke.com/ershoufang/',
-            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
-            'Suzhou'    : 'https://su.ke.com/ershoufang/',
-            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
-            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
-            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
-            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
-            'Chongqing' : 'https://cq.ke.com/ershoufang/',
-            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
-            'Hefei'     : 'https://hf.ke.com/ershoufang/',
-            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
-            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
-            'Changsha'	: 'https://cs.ke.com/ershoufang/',
-            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
-            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
-            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
+        assert len(city_name_list) == len(city_url_list)
 
-
-
-
-
-        self.url_dict = {
-            'Beijing'   : 'https://bj.ke.com/ershoufang/',
-            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
-            'Suzhou'    : 'https://su.ke.com/ershoufang/',
-            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
-            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
-            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
-            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
-            'Chongqing' : 'https://cq.ke.com/ershoufang/',
-            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
-            'Hefei'     : 'https://hf.ke.com/ershoufang/',
-            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
-            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
-            'Changsha'	: 'https://cs.ke.com/ershoufang/',
-            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
-            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
-            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
-        }
+        self.url_dict = dict(zip(city_name_list, city_url_list))
         self.all_scraped_data = dict()
+        self.city_name_list = city_name_list
+        self.city_url_list = city_url_list
+
+        # The spreadsheet file name (.xlsx)
+        fname = f"cityResaleNum{len(city_name_list)}.xlsx"
+        self.ssdk = SpreadsheetDataKeeper(self.city_name_list, fname)
 
 
     def get_url_city(self, url_str=None):
@@ -241,6 +225,17 @@ class HouseSpider(scrapy.Spider):
         wh_n = "-"
         cs_n = self.all_scraped_data['Changsha']
 
+        # Save the numbers to a xlsx file
+        city_resale_nlist = \
+            [self.all_scraped_data[city] if not self.all_scraped_data.get(city) is None else -1 \
+             for city in self.city_name_list]
+
+        if self.ssdk.append_data_row_to_spreadsheet(city_resale_nlist) is True:
+            print(f"[PYRAD] Successfully saved data to spreadsheet {self.ssdk.xlsx_name()}")
+        else:
+            print(f"[PYRAD] Failed to save data to spreadsheet {self.ssdk.xlsx_name()}")
+
+
         # Print current date & time
         dt = datetime.now()
         dt_string = dt.strftime("$%Y-%m-%d, %H:%M:%S$")
@@ -249,21 +244,6 @@ class HouseSpider(scrapy.Spider):
         print(f"{dt_string}")
         print(f"{dt_string1}")
         # print(f"{dt_string2}")
-
-        longstr = (f"$$\n"
-                   f"\\begin{{array}}{{lr|lr|lr|lr}}\n"
-                   f"\\hline\n"
-                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} &\n"
-                   f"\\mathrm{{城市}} & \mathrm{{数量}} & \mathrm{{城市}} & \mathrm{{数量}} \\\\\n"
-                   f"\\hline\n"
-                   f"北京 & {bj_n} & 上海 & {sh_n} & 深圳 & {shzh_n} & 广州 & {gz_n} \\\\\n"
-                   f"苏州 & {sz_n} & 杭州 & {hz_n} & 南京 & {nj_n} & 西安 & {xa_n} \\\\\n"
-                   f"成都 & {cd_n} & 重庆 & {cq_n} & 天津 & {tj_n} & 合肥 & {hf_n} \\\\\n"
-                   f"福州 & {fz_n} & 厦门 & {xm_n} & 武汉 & {wh_n} & 长沙 & {cs_n} \\\\\n"
-                   f"\\hline\n"
-                   f"\\end{{array}}\n"
-                   f"$$\n")
-        print(longstr)
 
         bj_n_fmtstr = format(bj_n, ",")
         gz_n_fmtstr = format(gz_n, ",")
@@ -333,12 +313,16 @@ class HouseSpider(scrapy.Spider):
         # print(f"[PYARD] City = {response.xpath(city_xpath).getall()}")
         # print(f"[PYARD] Total house number = {response.xpath(total_num_xpath).getall()}")
 
-        city_name = response.xpath(city_xpath).getall()[0]
-        total_num = int(response.xpath(total_num_xpath).getall()[0])
-        print(f"[PYARD] {city_name} = {total_num}")
+        data_got = response.xpath(city_xpath).getall()
+        if len(data_got) > 0:
+            city_name = response.xpath(city_xpath).getall()[0]
+            total_num = int(response.xpath(total_num_xpath).getall()[0])
+            print(f"[PYARD] {city_name} = {total_num}")
 
-        city_name = self.get_url_city(response.url)
-        self.all_scraped_data[city_name] = total_num
+            city_name = self.get_url_city(response.url)
+            self.all_scraped_data[city_name] = total_num
+        else:
+            print(f"[PYARD] City name not found for URL: {response.url}")
 
         # filename = f'test.html'
         # Path(filename).write_bytes(response.body)
