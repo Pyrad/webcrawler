@@ -2,6 +2,137 @@ from pathlib import Path
 
 import scrapy
 from datetime import datetime
+import platform
+
+class spreadsheetDataKeeper:
+
+    @staticmethod
+    def get_cpu_name():
+        """
+        Check current machine's CPU name
+        :return: A string representing current machine's CPU name.
+                 If not found, return an empty string
+        """
+        if platform.system() == "Windows":
+            return platform.processor()
+        elif platform.system() == "Darwin":
+            os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+            command = "sysctl -n machdep.cpu.brand_string"
+            return subprocess.check_output(command).strip()
+        elif platform.system() == "Linux":
+            command = "cat /proc/cpuinfo"
+            all_info = subprocess.check_output(command, shell=True).decode().strip()
+            for line in all_info.split("\n"):
+                if "model name" in line:
+                    return re.sub(".*model name.*:", "", line, 1)
+        return ""
+
+    @staticmethod
+    def get_data_dir_on_this_computer_by_cpu_name():
+        cur_is_win = platform.system() == "Windows"
+        cpu_name = "n/a"
+        if cur_is_win is True:
+            # Assume current it is running on Windows
+            # For win32com, refer to the link below
+            # https://learn.microsoft.com/zh-cn/windows/win32/cimwin32prov/win32-processor
+            from win32com.client import GetObject
+            root_winmgmts = GetObject("winmgmts:root\cimv2")
+            cpus = root_winmgmts.ExecQuery("Select * from Win32_Processor")
+            cpu_name = cpus[0].Name
+            cpu_name = cpu_name.strip()
+        else:
+            # Assume current it is running on Linux or other platforms
+            cpu_name = self.get_cpu_name()
+
+        MyAsusPCCpuName = 'Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz'
+        MyLenovoCpuName = 'AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx'
+        MySnpsCpuName = '11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz'
+
+        pyradnotes_dir = None
+        if cpu_name == MyAsusPCCpuName:
+            # If current PC is my ASUS computer
+            pyradnotes_dir = "D:/Gitee/pyradnotes/source/Notes"
+        elif cpu_name == MyLenovoCpuName:
+            pyradnotes_dir = "D:/Pyrad/Gitee/pyradnotes/source/Notes"
+        elif cpu_name == MySnpsCpuName:
+            # If current PC is my work computer from SNSP, don't do anything
+            pyradnotes_dir = ""
+        else:
+            self.print_error("Can't identify the CPU name ({}) for this PC, please verify.".format(cpu_name))
+
+        return pyradnotes_dir, cpu_name
+
+    def __init__(self, city_list, fname):
+        self.city_list = city_list
+        spf_dir, _ = self.get_data_dir_on_this_computer_by_cpu_name()
+        self.spfname = spf_dir + "/" + fname
+
+    def create_city_resale_spreadsheet_with_header(self, spfname, sheet_name="CityResaleNum"):
+
+        if not isinstance(spfname, str):
+            return False
+
+        # If file exists, assume this function should not be called
+        if os.path.isfile(spfname) is True:
+            return False
+
+        dt_cols = ["Date", "Time", "Weekday", "Week"]
+        city_cols = [ "Beijing", "Guangzhou", "Suzhou", "Hangzhou",
+                      "Nanjing", "Xian", "Chengdu", "Chongqing",
+                      "Tianjin", "Hefei", "Fuzhou", "Xiamen",
+                      "Changsha", "Shanghai", "Shenzhen", "Wuhan",]
+
+        # Header columns, first 4 are date, time, weekday, week, the rest are city names
+        # Current there are 16 cities
+        header_columns = dt_cols.copy()
+        header_columns.extend(city_cols)
+
+        df = pd.DataFrame(columns=header_columns)
+        try:
+            df.to_excel(spfname, sheet_name=sheet_name, index=False)
+        except PermissionError as perr:
+            print(f"PermissionError: errono = {perr.errno}")
+            print(f"PermissionError: strerror = {perr.strerror}")
+            print(f"PermissionError: filename = \'{perr.filename}\'")
+        except Exception as e:
+            print(e.what())
+
+        return os.path.isfile(spfname)
+
+    def get_date_time_value_list():
+        #dtime = datetime.date.fromtimestamp(datetime.datetime.now())
+        dtime = datetime.datetime.now()
+        # Date string
+        date_str = dtime.strftime("%Y-%m-%d")
+        # Time string
+        time_str = dtime.strftime("%H:%M:%S")
+        # Week day for today
+        day_str = dtime.strftime("%A")
+        # Which week
+        week_str = dtime.strftime("%W") # %U also works
+
+        return [date_str, time_str, day_str, week_str]
+
+    def append_data_row_to_spreadsheet(datadict, spfname, sheet_name="CityResaleNum"):
+
+        if not isinstance(spfname, str):
+            return False
+
+        if os.path.isfile(spfname) is False:
+            if create_city_resale_spreadsheet_with_header(spfname, sheet_name) is False:
+                return False
+
+        #row_val = get_date_time_value_list().extend([13]*16)
+        row_val = get_date_time_value_list()
+        row_val.extend([13]*16)
+        print(row_val)
+
+        # Use openpyxl directly to append rows to an existing spreadsheet
+        wb = openpyxl.load_workbook(spfname)
+        ws = wb.worksheets[0]
+        ws.append(row_val)
+        wb.save(spfname)
+
 
 class HouseSpider(scrapy.Spider):
     # Name must be unique inside this project
@@ -12,6 +143,45 @@ class HouseSpider(scrapy.Spider):
 
     def __init__(self, category=None, *args, **kwargs):
         super(HouseSpider, self).__init__(*args, **kwargs)
+
+            'Beijing'   : 'https://bj.ke.com/ershoufang/',
+            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
+            'Suzhou'    : 'https://su.ke.com/ershoufang/',
+            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
+            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
+            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
+            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
+            'Chongqing' : 'https://cq.ke.com/ershoufang/',
+            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
+            'Hefei'     : 'https://hf.ke.com/ershoufang/',
+            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
+            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
+            'Changsha'	: 'https://cs.ke.com/ershoufang/',
+            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
+            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
+            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
+
+            'Beijing'   : 'https://bj.ke.com/ershoufang/',
+            'Guangzhou' : 'https://gz.ke.com/ershoufang/',
+            'Suzhou'    : 'https://su.ke.com/ershoufang/',
+            'Hangzhou'  : 'https://hz.ke.com/ershoufang/',
+            'Nanjing'   : 'https://nj.ke.com/ershoufang/',
+            'Xi_an'     : 'https://xa.ke.com/ershoufang/',
+            'Chengdu'   : 'https://cd.ke.com/ershoufang/',
+            'Chongqing' : 'https://cq.ke.com/ershoufang/',
+            'Tianjin'   : 'https://tj.ke.com/ershoufang/',
+            'Hefei'     : 'https://hf.ke.com/ershoufang/',
+            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
+            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
+            'Changsha'	: 'https://cs.ke.com/ershoufang/',
+            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
+            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
+            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
+
+
+
+
+
         self.url_dict = {
             'Beijing'   : 'https://bj.ke.com/ershoufang/',
             'Guangzhou' : 'https://gz.ke.com/ershoufang/',
@@ -22,14 +192,16 @@ class HouseSpider(scrapy.Spider):
             'Chengdu'   : 'https://cd.ke.com/ershoufang/',
             'Chongqing' : 'https://cq.ke.com/ershoufang/',
             'Tianjin'   : 'https://tj.ke.com/ershoufang/',
-			'Hefei'		: 'https://hf.ke.com/ershoufang/',
-			'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
-			'Xiamen'	: 'https://xm.ke.com/ershoufang/',
-			'Wuhan'		: 'https://wh.ke.com/ershoufang/',
-			'Changsha'	: 'https://cs.ke.com/ershoufang/',
-			'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
+            'Hefei'     : 'https://hf.ke.com/ershoufang/',
+            'Fuzhou'	: 'https://fz.ke.com/ershoufang/',
+            'Xiamen'	: 'https://xm.ke.com/ershoufang/',
+            'Changsha'	: 'https://cs.ke.com/ershoufang/',
+            'Shanghai'	: 'https://sh.ke.com/ershoufang/',
+            'Shenzhen'	: 'https://sz.ke.com/ershoufang/',
+            'Wuhan'	: 'https://wh.ke.com/ershoufang/',
         }
         self.all_scraped_data = dict()
+
 
     def get_url_city(self, url_str=None):
         if url_str is None:
