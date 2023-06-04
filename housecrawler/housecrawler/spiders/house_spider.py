@@ -49,16 +49,20 @@ class SpreadsheetDataKeeper:
             # Assume current it is running on Linux or other platforms
             cpu_name = SpreadsheetDataKeeper.get_cpu_name()
 
+		# Different CPU names corresponds to different machines
         MyAsusPCCpuName = 'Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz'
         MyLenovoCpuName = 'AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx'
         MySnpsCpuName = '11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz'
 
+        # Relative directory for RealEstate Under Pyrad Notes directory
+        rdir = "source/RealEstate"
+
         pyradnotes_dir = None
         if cpu_name == MyAsusPCCpuName:
             # If current PC is my ASUS computer
-            pyradnotes_dir = "D:/Gitee/pyradnotes/source/Notes"
+            pyradnotes_dir = f"D:/Gitee/pyradnotes/{rdir}"
         elif cpu_name == MyLenovoCpuName:
-            pyradnotes_dir = "D:/Pyrad/Gitee/pyradnotes/source/Notes"
+            pyradnotes_dir = f"D:/Pyrad/Gitee/pyradnotes/{rdir}"
         elif cpu_name == MySnpsCpuName:
             # If current PC is my work computer from SNSP, don't do anything
             pyradnotes_dir = ""
