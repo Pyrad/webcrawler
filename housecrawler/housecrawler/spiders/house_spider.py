@@ -119,7 +119,7 @@ class SpreadsheetDataKeeper:
         # Week day for today
         day_str = dtime.strftime("%A")
         # Which week
-        week_str = dtime.strftime("%W") # %U also works
+        week_str = dtime.strftime("%U") # %w also works
 
         return [date_str, time_str, day_str, week_str]
 
