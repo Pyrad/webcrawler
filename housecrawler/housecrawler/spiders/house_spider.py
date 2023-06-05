@@ -276,12 +276,12 @@ class HouseSpider(scrapy.Spider):
                     f"重庆 {cq_n_fmtstr}\n"
                     f"天津 {tj_n_fmtstr}\n"
                     f"合肥 {hf_n_fmtstr}\n"
-                    f"福州 {fz_n_fmtstr}\n"
-                    f"厦门 {xm_n_fmtstr}\n"
-                    f"长沙 {cs_n_fmtstr}\n"
-                    f"上海 {sh_n_fmtstr}\n"
-                    f"深圳 {shzh_n_fmtstr}\n"
-                    f"武汉 {wh_n_fmtstr}\n")
+                    f"福州  {fz_n_fmtstr}\n"
+                    f"厦门  {xm_n_fmtstr}\n"
+                    f"长沙  {cs_n_fmtstr}\n"
+                    f"上海  {sh_n_fmtstr}\n"
+                    f"深圳  {shzh_n_fmtstr}\n"
+                    f"武汉  {wh_n_fmtstr}\n")
         print(longstr2)
 
     def start_requests(self):
