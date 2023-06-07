@@ -14,6 +14,13 @@ class TableState(Enum):
     st_city_num_unkown = 5
     st_end = 6
 
+class TableErrorCode(Enum):
+    THIS_WEEK_TABLE_NOT_FOUND = 0
+    THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND = 1
+    THIS_WEEK_TABLE_PARSE_SUCCESS = 2
+    THIS_WEEK_TABLE_PARSE_FAIL = 3
+    ADD_THIS_WEEK_TABLE_SUCCESS = 4
+
 
 class ResaleTableRefresh:
     """
@@ -56,10 +63,16 @@ class ResaleTableRefresh:
                     break
         return self.copy_until_linenum
 
+    def add_table_for_this_week(self):
+        return TableErrorCode.ADD_THIS_WEEK_TABLE_SUCCESS
+
     def parse_this_week_table(self):
+
+        TEC = TableErrorCode
+
         n = self.find_this_week_table()
         if n < 0:
-            return False
+            return TEC.THIS_WEEK_TABLE_NOT_FOUND
 
         self.city_number.clear()
         self.city_number_unknown.clear()
@@ -93,7 +106,7 @@ class ResaleTableRefresh:
                         #print(f"Found date column is {ncol}")
                         self.table_data_date_time.append(curline)
                     else:
-                        return False
+                        return TEC.THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND
                 elif st == TableState.st_time:
                     if not curline.startswith("\\mathrm"):
                         continue
@@ -127,7 +140,8 @@ class ResaleTableRefresh:
                         self.city_number_unknown.append(' '.join(clist))
                 else:
                     pass
-        return len(self.city_number) != 0
+
+        return TEC.THIS_WEEK_TABLE_PARSE_SUCCESS if len(self.city_number) != 0 else TEC.THIS_WEEK_TABLE_PARSE_FAIL
 
     def update_this_week_table(self):
         #fp = tempfile.TemporaryFile(mode='w', encoding='utf-8', dir='.')
@@ -166,8 +180,16 @@ class ResaleTableRefresh:
         os.remove(tmpfname)
 
     def refresh(self):
-        if self.parse_this_week_table() is True:
+        errcode = self.parse_this_week_table()
+
+        if errcode == TableErrorCode.THIS_WEEK_TABLE_NOT_FOUND or \
+           errcode == TableErrorCode.THIS_WEEK_TABLE_NOT_FOUND:
+            self.add_table_for_this_week()
             self.update_this_week_table()
+        elif errcode == TableErrorCode.THIS_WEEK_TABLE_PARSE_SUCCESS:
+            self.update_this_week_table()
+        else:
+            pass
 
 
 if __name__ == "__main__":
