@@ -61,6 +61,9 @@ class ResaleTableRefresh:
         if n < 0:
             return False
 
+        self.city_number.clear()
+        self.city_number_unknown.clear()
+
         st = TableState.st_none
         hline_cnt = 0
         ncol = -1
@@ -89,6 +92,8 @@ class ResaleTableRefresh:
                         ncol = clist.index(colstr)
                         #print(f"Found date column is {ncol}")
                         self.table_data_date_time.append(curline)
+                    else:
+                        return False
                 elif st == TableState.st_time:
                     if not curline.startswith("\\mathrm"):
                         continue
@@ -122,6 +127,7 @@ class ResaleTableRefresh:
                         self.city_number_unknown.append(' '.join(clist))
                 else:
                     pass
+        return len(self.city_number) != 0
 
     def update_this_week_table(self):
         #fp = tempfile.TemporaryFile(mode='w', encoding='utf-8', dir='.')
@@ -160,8 +166,8 @@ class ResaleTableRefresh:
         os.remove(tmpfname)
 
     def refresh(self):
-        self.parse_this_week_table()
-        self.update_this_week_table()
+        if self.parse_this_week_table() is True:
+            self.update_this_week_table()
 
 
 if __name__ == "__main__":
