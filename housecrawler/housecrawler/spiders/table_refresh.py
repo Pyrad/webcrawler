@@ -1,6 +1,6 @@
 import shutil
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 # import tempfile
 
@@ -20,6 +20,7 @@ class TableErrorCode(Enum):
     THIS_WEEK_TABLE_PARSE_SUCCESS = 2
     THIS_WEEK_TABLE_PARSE_FAIL = 3
     ADD_THIS_WEEK_TABLE_SUCCESS = 4
+    ADD_THIS_WEEK_TABLE_FAIL = 5
 
 
 class ResaleTableRefresh:
@@ -64,6 +65,41 @@ class ResaleTableRefresh:
         return self.copy_until_linenum
 
     def add_table_for_this_week(self):
+        if not isinstance(self.fname, str):
+            return TableErrorCode.ADD_THIS_WEEK_TABLE_FAIL
+        nday = 7
+        with open(self.fname, 'a+', encoding=self.encoding_style) as fp:
+            # First add 2 empty lines to separate it from the previous table
+            fp.write("\n\n")
+            cur_week_num = self.curtime.strftime("%U")
+            fp.write(f"### Week {cur_week_num}\n")
+            fp.write(f"\n$\\text{{Year {self.curtime.year} Week {cur_week_num}}}$\n\n")
+            fp.write("$$\n")
+            fp.write("\\begin{array}{l|r|r|r|r|r|r|r}\n")
+            fp.write("\\hline\n")
+            # Date row
+            tstart_this_week = self.curtime - timedelta(self.curtime.isoweekday())
+            dates_this_week = [(tstart_this_week + timedelta(days=i)).strftime("%m-%d") for i in range(7)]
+            date_row = "\\mathrm {Date} & " + " & ".join(["\\mathrm{" + dstr + "}" for dstr in dates_this_week])
+            fp.write(date_row + " \\\\ \n")
+            # Time row
+            time_row = "\\mathrm {城市} & " + " & ".join(["\\mathrm{-}"] * nday)
+            fp.write(time_row + " \\\\ \n")
+            fp.write("\\hline\n")
+            # City number rows
+            row_last_part = " & " + " & ".join(["-"] * nday) + " \\\\"
+            for city in self.city_names[:-2]:
+                crow = city + row_last_part
+                fp.write(crow + "\n")
+            fp.write("\\hline\n")
+            # City number unkown rows
+            for city in self.city_names[-2:]:
+                crow = city + row_last_part
+                fp.write(crow + "\n")
+            fp.write("\\hline\n")
+            fp.write("\\end{array}\n")
+            fp.write("$$\n\n")
+
         return TableErrorCode.ADD_THIS_WEEK_TABLE_SUCCESS
 
     def parse_this_week_table(self):
@@ -182,15 +218,19 @@ class ResaleTableRefresh:
     def refresh(self):
         errcode = self.parse_this_week_table()
 
-        if errcode == TableErrorCode.THIS_WEEK_TABLE_NOT_FOUND or \
-           errcode == TableErrorCode.THIS_WEEK_TABLE_NOT_FOUND:
-            self.add_table_for_this_week()
+        TEC = TableErrorCode
+
+        if errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND or \
+           errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND:
+            errcode = self.add_table_for_this_week()
+        if errcode == TEC.ADD_THIS_WEEK_TABLE_SUCCESS or \
+           errcode == TEC.THIS_WEEK_TABLE_PARSE_SUCCESS:
             self.update_this_week_table()
-        elif errcode == TableErrorCode.THIS_WEEK_TABLE_PARSE_SUCCESS:
-            self.update_this_week_table()
-        else:
-            pass
 
 
 if __name__ == "__main__":
     print(f"This is the __main__ block for module table_refresh.py")
+    fn = f"D:/Pyrad/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
+    rtr = ResaleTableRefresh(fn)
+    ecode = rtr.add_table_for_this_week()
+    print(f"Error code is {ecode}")
