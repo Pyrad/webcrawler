@@ -21,6 +21,8 @@ class TableErrorCode(Enum):
     THIS_WEEK_TABLE_PARSE_FAIL = 3
     ADD_THIS_WEEK_TABLE_SUCCESS = 4
     ADD_THIS_WEEK_TABLE_FAIL = 5
+    UPDATE_THIS_WEEK_TABLE_FAIL = 6
+    UPDATE_THIS_WEEK_TABLE_SUCCESS = 7
 
 
 class ResaleTableRefresh:
@@ -67,7 +69,7 @@ class ResaleTableRefresh:
     def add_table_for_this_week(self):
         if not isinstance(self.fname, str):
             return TableErrorCode.ADD_THIS_WEEK_TABLE_FAIL
-        nday = 7
+        N_WEEKDAY = 7
         with open(self.fname, 'a+', encoding=self.encoding_style) as fp:
             # First add 2 empty lines to separate it from the previous table
             fp.write("\n\n")
@@ -78,16 +80,16 @@ class ResaleTableRefresh:
             fp.write("\\begin{array}{l|r|r|r|r|r|r|r}\n")
             fp.write("\\hline\n")
             # Date row
-            tstart_this_week = self.curtime - timedelta(self.curtime.isoweekday())
+            tstart_this_week = self.curtime - timedelta(self.curtime.isoweekday() % N_WEEKDAY)
             dates_this_week = [(tstart_this_week + timedelta(days=i)).strftime("%m-%d") for i in range(7)]
             date_row = "\\mathrm {Date} & " + " & ".join(["\\mathrm{" + dstr + "}" for dstr in dates_this_week])
             fp.write(date_row + " \\\\ \n")
             # Time row
-            time_row = "\\mathrm {城市} & " + " & ".join(["\\mathrm{-}"] * nday)
+            time_row = "\\mathrm {城市} & " + " & ".join(["\\mathrm{-}"] * N_WEEKDAY)
             fp.write(time_row + " \\\\ \n")
             fp.write("\\hline\n")
             # City number rows
-            row_last_part = " & " + " & ".join(["-"] * nday) + " \\\\"
+            row_last_part = " & " + " & ".join(["-"] * N_WEEKDAY) + " \\\\"
             for city in self.city_names[:-2]:
                 crow = city + row_last_part
                 fp.write(crow + "\n")
@@ -180,6 +182,16 @@ class ResaleTableRefresh:
         return TEC.THIS_WEEK_TABLE_PARSE_SUCCESS if len(self.city_number) != 0 else TEC.THIS_WEEK_TABLE_PARSE_FAIL
 
     def update_this_week_table(self):
+        # Error code class (enum) short hand
+        TEC = TableErrorCode
+
+        # Before updating the table file, make sure the table for this week
+        # has already been added
+        errcode = self.parse_this_week_table()
+        if errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND or \
+           errcode == TEC.THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND:
+            return TEC.UPDATE_THIS_WEEK_TABLE_FAIL
+
         #fp = tempfile.TemporaryFile(mode='w', encoding='utf-8', dir='.')
         tmpfname = "mytemp.md"
         fp = open(tmpfname, "w", encoding=self.encoding_style)
@@ -215,22 +227,30 @@ class ResaleTableRefresh:
         shutil.copy(tmpfname, self.fname)
         os.remove(tmpfname)
 
+        return TEC.UPDATE_THIS_WEEK_TABLE_SUCCESS
+
     def refresh(self):
         errcode = self.parse_this_week_table()
 
         TEC = TableErrorCode
 
         if errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND or \
-           errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND:
+           errcode == TEC.THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND:
             errcode = self.add_table_for_this_week()
         if errcode == TEC.ADD_THIS_WEEK_TABLE_SUCCESS or \
            errcode == TEC.THIS_WEEK_TABLE_PARSE_SUCCESS:
-            self.update_this_week_table()
+            errcode = self.update_this_week_table()
+        if errcode == TEC.UPDATE_THIS_WEEK_TABLE_SUCCESS:
+            print(f"[PYRAD] INFO: Successfully updated the resale table for this week")
+        else:
+            print(f"[PYRAD] ERROR: Failed to update the resale table for this week")
 
 
 if __name__ == "__main__":
     print(f"This is the __main__ block for module table_refresh.py")
-    fn = f"D:/Pyrad/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
+    #fn = f"D:/Pyrad/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
+    fn = f"D:/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
     rtr = ResaleTableRefresh(fn)
-    ecode = rtr.add_table_for_this_week()
+    #ecode = rtr.add_table_for_this_week()
+    ecode = rtr.refresh()
     print(f"Error code is {ecode}")
