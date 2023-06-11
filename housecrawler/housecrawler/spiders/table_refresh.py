@@ -82,10 +82,10 @@ class ResaleTableRefresh:
             # Date row
             tstart_this_week = self.curtime - timedelta(self.curtime.isoweekday() % N_WEEKDAY)
             dates_this_week = [(tstart_this_week + timedelta(days=i)).strftime("%m-%d") for i in range(7)]
-            date_row = "\\mathrm {Date} & " + " & ".join(["\\mathrm{" + dstr + "}" for dstr in dates_this_week])
+            date_row = "\\mathrm{Date} & " + " & ".join(["\\mathrm{" + dstr + "}" for dstr in dates_this_week])
             fp.write(date_row + " \\\\ \n")
             # Time row
-            time_row = "\\mathrm {城市} & " + " & ".join(["\\mathrm{-}"] * N_WEEKDAY)
+            time_row = "\\mathrm{城市} & " + " & ".join(["\\mathrm{-}"] * N_WEEKDAY)
             fp.write(time_row + " \\\\ \n")
             fp.write("\\hline\n")
             # City number rows
@@ -236,6 +236,7 @@ class ResaleTableRefresh:
 
         if errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND or \
            errcode == TEC.THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND:
+            print(f"[PYRAD] WARNING: Table for this week not found, added a table for this week")
             errcode = self.add_table_for_this_week()
         if errcode == TEC.ADD_THIS_WEEK_TABLE_SUCCESS or \
            errcode == TEC.THIS_WEEK_TABLE_PARSE_SUCCESS:
