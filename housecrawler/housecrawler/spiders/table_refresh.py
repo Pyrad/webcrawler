@@ -104,6 +104,23 @@ class ResaleTableRefresh:
 
         return TableErrorCode.ADD_THIS_WEEK_TABLE_SUCCESS
 
+    def clear_parsed_table_data(self):
+        """
+        Clear the parsed data for the table of this week, currently this
+        includes the resale numbers of each city, the unkown resale numbers
+        for some cities, and the date, time and city names for this table.
+        Don't clear the 'copy_until_linenum', as it parses the file for
+        searching it for only one time
+        :return:
+        """
+        self.city_number.clear()
+        self.city_number_unknown.clear()
+        self.table_data_date_time.clear()
+
+        return len(self.city_number) == 0 and len(self.city_number_unknown) == 0 and \
+                len(self.table_data_date_time) == 0
+
+
     def parse_this_week_table(self):
 
         TEC = TableErrorCode
@@ -112,8 +129,10 @@ class ResaleTableRefresh:
         if n < 0:
             return TEC.THIS_WEEK_TABLE_NOT_FOUND
 
-        self.city_number.clear()
-        self.city_number_unknown.clear()
+        #self.city_number.clear()
+        #self.city_number_unknown.clear()
+        # Should clear parsed data of last before starting this time
+        self.clear_parsed_table_data()
 
         st = TableState.st_none
         hline_cnt = 0
