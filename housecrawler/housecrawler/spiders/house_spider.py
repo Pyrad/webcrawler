@@ -292,6 +292,13 @@ class HouseSpider(scrapy.Spider):
                     f"武汉  {wh_n_fmtstr}\n")
         print(longstr2)
 
+        # For git commit message
+        dt_string = dt.strftime("%Y-%m-%d %H:%M")
+        print("==== Git commit message ====")
+        print(f"g commit -am \"Realestate Update resale numbers {dt_string}\"")
+        print("============================")
+
+
     def start_requests(self):
         # Set urls list for scraping
         urls = [cur_url for _, cur_url in self.url_dict.items()]
