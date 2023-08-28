@@ -221,7 +221,7 @@ class HouseSpider(scrapy.Spider):
         gz_n = self.all_scraped_data['Guangzhou']
         sz_n = self.all_scraped_data['Suzhou']
         hz_n = self.all_scraped_data['Hangzhou']
-        nj_n = self.all_scraped_data['Nanjing']
+        nj_n = self.all_scraped_data['Nanjing'] if 'Nanjing' in self.all_scraped_data.keys() else "-"
         xa_n = self.all_scraped_data['Xi_an']
         cd_n = self.all_scraped_data['Chengdu']
         cq_n = self.all_scraped_data['Chongqing']
@@ -257,19 +257,19 @@ class HouseSpider(scrapy.Spider):
         print(f"{dt_string1}")
         # print(f"{dt_string2}")
 
-        bj_n_fmtstr = format(bj_n, ",")
-        gz_n_fmtstr = format(gz_n, ",")
-        sz_n_fmtstr = format(sz_n, ",")
-        hz_n_fmtstr = format(hz_n, ",")
-        nj_n_fmtstr = format(nj_n, ",")
-        xa_n_fmtstr = format(xa_n, ",")
-        cd_n_fmtstr = format(cd_n, ",")
-        cq_n_fmtstr = format(cq_n, ",")
-        tj_n_fmtstr = format(tj_n, ",")
-        hf_n_fmtstr = format(hf_n, ",")
-        fz_n_fmtstr = format(fz_n, ",")
-        xm_n_fmtstr = format(xm_n, ",")
-        cs_n_fmtstr = format(cs_n, ",")
+        bj_n_fmtstr = format(bj_n, ",") if isinstance(bj_n, int) else "-"
+        gz_n_fmtstr = format(gz_n, ",") if isinstance(gz_n, int) else "-"
+        sz_n_fmtstr = format(sz_n, ",") if isinstance(sz_n, int) else "-"
+        hz_n_fmtstr = format(hz_n, ",") if isinstance(hz_n, int) else "-"
+        nj_n_fmtstr = format(nj_n, ",") if isinstance(nj_n, int) else "-"
+        xa_n_fmtstr = format(xa_n, ",") if isinstance(xa_n, int) else "-"
+        cd_n_fmtstr = format(cd_n, ",") if isinstance(cd_n, int) else "-"
+        cq_n_fmtstr = format(cq_n, ",") if isinstance(cq_n, int) else "-"
+        tj_n_fmtstr = format(tj_n, ",") if isinstance(tj_n, int) else "-"
+        hf_n_fmtstr = format(hf_n, ",") if isinstance(hf_n, int) else "-"
+        fz_n_fmtstr = format(fz_n, ",") if isinstance(fz_n, int) else "-"
+        xm_n_fmtstr = format(xm_n, ",") if isinstance(xm_n, int) else "-"
+        cs_n_fmtstr = format(cs_n, ",") if isinstance(cs_n, int) else "-"
         sh_n_fmtstr = format(sh_n, ",") if isinstance(sh_n, int) else "-"
         shzh_n_fmtstr = format(shzh_n, ",")  if isinstance(shzh_n, int) else "-"
         wh_n_fmtstr = format(wh_n, ",")  if isinstance(wh_n, int) else "-"
