@@ -11,6 +11,71 @@ import openpyxl
 
 from .table_refresh import ResaleTableRefresh
 
+class CityInfoItem:
+    """
+    A class to hold information for each city.
+    Currently one object of item contains 2 members, which are city name (English) and
+    the URL to scrape data from Lianjia.com.
+    """
+    def __init__(self, city_name, url):
+        self.city_name_str = city_name
+        self.url_str = url
+
+    @property
+    def city_name(self):
+        return self.city_name_str
+
+    @property
+    def url(self):
+        return self.url_str
+
+class CityInfoList:
+    """
+    A contain to hold all the information of all cities
+    """
+    def __init__(self):
+        self.clist = []
+
+    def add(self, city_name, url):
+        cii = CityInfoItem(city_name, url)
+        self.clist.append(cii)
+
+    def __len__(self):
+        return len(self.clist)
+
+    def get_city_name_list(self):
+        return [cii.city_name for cii in self.clist]
+
+    def get_city_url_list(self):
+        return [cii.url for cii in self.clist]
+
+    def get_url_dict(self):
+        return dict(zip(self.get_city_name_list(), self.get_city_url_list()))
+
+    def provideSpreadSheetFileName(self):
+        """
+        Provide a xlsx file name to append data.
+        The file name has the following format,
+        cityDataYear{YearNumber}ReleaseNum{CityNum}.xlsx
+        """
+        # Get this year number string
+        dtime = datetime.now()
+        year_str = dtime.strftime("%Y")
+        # Xlsx File name
+        fname = f"cityDataYear{year_str}ResaleNum{len(self.clist)}.xlsx"
+        return fname
+
+    def provideMarkdownFileName(self):
+        """
+        Provide a markdown file name to append data.
+        The file name has the following format,
+        releaseNum{YearNumber}.md
+        """
+        # Get this year number string
+        dtime = datetime.now()
+        year_str = dtime.strftime("%Y")
+
+
 
 class SpreadsheetDataKeeper:
 
@@ -52,7 +117,7 @@ class SpreadsheetDataKeeper:
             # Assume current it is running on Linux or other platforms
             cpu_name = SpreadsheetDataKeeper.get_cpu_name()
 
-		# Different CPU names corresponds to different machines
+        # Different CPU names corresponds to different machines
         MyAsusPCCpuName = 'Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz'
         MyLenovoCpuName = 'AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx'
         MySnpsCpuName = '11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz'
@@ -161,36 +226,32 @@ class HouseSpider(scrapy.Spider):
     def __init__(self, category=None, *args, **kwargs):
         super(HouseSpider, self).__init__(*args, **kwargs)
 
-        city_name_list = ['Beijing', 'Guangzhou', 'Suzhou', 'Hangzhou',
-                          'Nanjing', 'Xi_an', 'Chengdu', 'Chongqing',
-                          'Tianjin', 'Hefei', 'Fuzhou', 'Xiamen',
-                          'Changsha', 'Shanghai', 'Shenzhen', 'Wuhan',]
-        city_url_list = ['https://bj.ke.com/ershoufang/',
-                          'https://gz.ke.com/ershoufang/',
-                          'https://su.ke.com/ershoufang/',
-                          'https://hz.ke.com/ershoufang/',
-                          'https://nj.ke.com/ershoufang/',
-                          'https://xa.ke.com/ershoufang/',
-                          'https://cd.ke.com/ershoufang/',
-                          'https://cq.ke.com/ershoufang/',
-                          'https://tj.ke.com/ershoufang/',
-                          'https://hf.ke.com/ershoufang/',
-                          'https://fz.ke.com/ershoufang/',
-                          'https://xm.ke.com/ershoufang/',
-                          'https://cs.ke.com/ershoufang/',
-                          'https://sh.ke.com/ershoufang/',
-                          'https://sz.ke.com/ershoufang/',
-                          'https://wh.ke.com/ershoufang/',]
+        cil = CityInfoList()
+        cil.add('Beijing',      'https://bj.ke.com/ershoufang/')
+        cil.add('Guangzhou',    'https://gz.ke.com/ershoufang/')
+        cil.add('Suzhou',       'https://su.ke.com/ershoufang/')
+        cil.add('Hangzhou',     'https://hz.ke.com/ershoufang/')
+        cil.add('Nanjing',      'https://nj.ke.com/ershoufang/')
+        cil.add('Xi_an',        'https://xa.ke.com/ershoufang/')
+        cil.add('Chengdu',      'https://cd.ke.com/ershoufang/')
+        cil.add('Chongqing',    'https://cq.ke.com/ershoufang/')
+        cil.add('Tianjin',      'https://tj.ke.com/ershoufang/')
+        cil.add('Hefei',        'https://hf.ke.com/ershoufang/')
+        cil.add('Fuzhou',       'https://fz.ke.com/ershoufang/')
+        cil.add('Xiamen',       'https://xm.ke.com/ershoufang/')
+        cil.add('Changsha',     'https://cs.ke.com/ershoufang/')
+        cil.add('Shanghai',     'https://sh.ke.com/ershoufang/')
+        cil.add('Shenzhen',     'https://sz.ke.com/ershoufang/')
+        cil.add('Wuhan',        'https://wh.ke.com/ershoufang/')
 
-        assert len(city_name_list) == len(city_url_list)
-
-        self.url_dict = dict(zip(city_name_list, city_url_list))
+        self.city_info_list = cil
+        self.url_dict = cil.get_url_dict()
         self.all_scraped_data = dict()
-        self.city_name_list = city_name_list
-        self.city_url_list = city_url_list
+        self.city_name_list = cil.get_city_name_list()
+        self.city_url_list = cil.get_city_url_list()
 
         # The spreadsheet file name (.xlsx)
-        fname = f"cityResaleNum{len(city_name_list)}.xlsx"
+        fname = cil.provideSpreadSheetFileName()
         self.ssdk = SpreadsheetDataKeeper(self.city_name_list, fname)
 
 
