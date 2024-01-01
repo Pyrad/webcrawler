@@ -74,6 +74,9 @@ class CityInfoList:
         # Get this year number string
         dtime = datetime.now()
         year_str = dtime.strftime("%Y")
+        # Markdown file name
+        fname = f"resalenumbers{year_str}.md"
+        return fname
 
 
 
@@ -268,6 +271,12 @@ class HouseSpider(scrapy.Spider):
 
         return "N/A"
 
+    def get_markdown_fname(self):
+        return self.city_info_list.provideMarkdownFileName()
+
+    def get_xlsx_fname(self):
+        return self.city_info_list.provideSpreadSheetFileName()
+
     def closed(self, reason):
         cnum = len(self.all_scraped_data)
         if cnum == 0:
@@ -305,7 +314,7 @@ class HouseSpider(scrapy.Spider):
 
         # Update the markdown file for resale tables
         ddir, _ = self.ssdk.get_data_dir_on_this_computer_by_cpu_name()
-        resale_md_filename = ddir + "/resalenumbers2023.md"
+        resale_md_filename = ddir + "/" + self.get_markdown_fname()
         rtr = ResaleTableRefresh(resale_md_filename, self.all_scraped_data)
         rtr.refresh()
 

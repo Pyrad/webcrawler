@@ -14,6 +14,7 @@ class TableState(Enum):
     st_city_num_unkown = 5
     st_end = 6
 
+
 class TableErrorCode(Enum):
     THIS_WEEK_TABLE_NOT_FOUND = 0
     THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND = 1
@@ -23,6 +24,7 @@ class TableErrorCode(Enum):
     ADD_THIS_WEEK_TABLE_FAIL = 5
     UPDATE_THIS_WEEK_TABLE_FAIL = 6
     UPDATE_THIS_WEEK_TABLE_SUCCESS = 7
+    CREATE_DATA_TABLE_FILE_FAIL = 8
 
 
 class ResaleTableRefresh:
@@ -53,6 +55,25 @@ class ResaleTableRefresh:
         index = self.en_city_names.index(en_name)
         return self.city_names[index]
 
+    def get_file_header_str(self):
+        year_str = self.curtime.strftime("%Y")
+        hdr_str = (f"# Year {year_str} Resale Numbers from Lianjia/Beike\n\n"
+                   f"## 重点城市二手房数量统计\n\n")
+        return hdr_str
+
+    def check_table_file_existance(self):
+        return os.path.isfile(self.fname) and os.access(self.fname, os.F_OK)
+
+    def create_file_and_write_header(self):
+        if self.check_table_file_existance():
+            print(f"File alreayd exist, not need to create: {self.fname}")
+            return True
+
+        with open(self.fname, 'a+', encoding=self.encoding_style) as fp:
+            fp.write(f"{self.get_file_header_str()}")
+
+        return self.check_table_file_existance()
+
     def find_this_week_table(self):
         weeknum = int(self.curtime.strftime("%U"))
         yearnum = self.curtime.year
@@ -73,7 +94,7 @@ class ResaleTableRefresh:
         with open(self.fname, 'a+', encoding=self.encoding_style) as fp:
             # First add 2 empty lines to separate it from the previous table
             fp.write("\n\n")
-            cur_week_num = self.curtime.strftime("%U")
+            cur_week_num = int(self.curtime.strftime("%U"))
             fp.write(f"### Week {cur_week_num}\n")
             fp.write(f"\n$\\text{{Year {self.curtime.year} Week {cur_week_num}}}$\n\n")
             fp.write("$$\n")
@@ -249,9 +270,16 @@ class ResaleTableRefresh:
         return TEC.UPDATE_THIS_WEEK_TABLE_SUCCESS
 
     def refresh(self):
-        errcode = self.parse_this_week_table()
-
         TEC = TableErrorCode
+
+        if self.check_table_file_existance() is False:
+            if self.create_file_and_write_header() is False:
+                print(f"[PYRAD] Fail to create new table file to write data")
+                return TableErrorCode.CREATE_DATA_TABLE_FILE_FAIL
+            else:
+                print(f"[PYRAD] Successfully create new table file: {self.fname}")
+
+        errcode = self.parse_this_week_table()
 
         if errcode == TEC.THIS_WEEK_TABLE_NOT_FOUND or \
            errcode == TEC.THIS_WEEK_TABLE_DATE_COLUMN_NOT_FOUND:
@@ -269,7 +297,8 @@ class ResaleTableRefresh:
 if __name__ == "__main__":
     print(f"This is the __main__ block for module table_refresh.py")
     #fn = f"D:/Pyrad/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
-    fn = f"D:/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
+    #fn = f"D:/Gitee/pyradnotes/source/RealEstate/resalenumbers2023.md"
+    fn = f"D:/Gitee/pyradnotes/source/RealEstate/resalenumbers2024.md"
     rtr = ResaleTableRefresh(fn)
     #ecode = rtr.add_table_for_this_week()
     ecode = rtr.refresh()
