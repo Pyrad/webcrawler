@@ -61,18 +61,18 @@ class ResaleTableRefresh:
                    f"## 重点城市二手房数量统计\n\n")
         return hdr_str
 
-    def check_table_file_existance(self):
+    def check_table_file_existence(self):
         return os.path.isfile(self.fname) and os.access(self.fname, os.F_OK)
 
     def create_file_and_write_header(self):
-        if self.check_table_file_existance():
+        if self.check_table_file_existence():
             print(f"File alreayd exist, not need to create: {self.fname}")
             return True
 
         with open(self.fname, 'a+', encoding=self.encoding_style) as fp:
             fp.write(f"{self.get_file_header_str()}")
 
-        return self.check_table_file_existance()
+        return self.check_table_file_existence()
 
     def find_this_week_table(self):
         weeknum = int(self.curtime.strftime("%U"))
@@ -272,7 +272,7 @@ class ResaleTableRefresh:
     def refresh(self):
         TEC = TableErrorCode
 
-        if self.check_table_file_existance() is False:
+        if self.check_table_file_existence() is False:
             if self.create_file_and_write_header() is False:
                 print(f"[PYRAD] Fail to create new table file to write data")
                 return TableErrorCode.CREATE_DATA_TABLE_FILE_FAIL
