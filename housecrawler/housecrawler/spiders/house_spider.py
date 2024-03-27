@@ -293,7 +293,7 @@ class HouseSpider(scrapy.Spider):
         hz_n = self.all_scraped_data['Hangzhou']
         nj_n = self.all_scraped_data['Nanjing'] if 'Nanjing' in self.all_scraped_data.keys() else "-"
         xa_n = self.all_scraped_data['Xi_an']
-        cd_n = self.all_scraped_data['Chengdu']
+        cd_n = self.all_scraped_data['Chengdu'] if 'Chengdu' in self.all_scraped_data.keys() else "-"
         cq_n = self.all_scraped_data['Chongqing']
         tj_n = self.all_scraped_data['Tianjin']
         hf_n = self.all_scraped_data['Hefei']
