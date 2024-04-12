@@ -285,22 +285,22 @@ class HouseSpider(scrapy.Spider):
         for city_name, total_num in self.all_scraped_data.items():
             print(f"[PYARD] {city_name} = {total_num}")
 
-        bj_n = self.all_scraped_data['Beijing']
+        bj_n = self.all_scraped_data['Beijing'] if 'Beijing' in self.all_scraped_data else "-"
         sh_n = "-"
-        shzh_n = self.all_scraped_data['Shenzhen']
-        gz_n = self.all_scraped_data['Guangzhou']
-        sz_n = self.all_scraped_data['Suzhou']
-        hz_n = self.all_scraped_data['Hangzhou']
-        nj_n = self.all_scraped_data['Nanjing'] if 'Nanjing' in self.all_scraped_data.keys() else "-"
-        xa_n = self.all_scraped_data['Xi_an']
-        cd_n = self.all_scraped_data['Chengdu'] if 'Chengdu' in self.all_scraped_data.keys() else "-"
-        cq_n = self.all_scraped_data['Chongqing']
-        tj_n = self.all_scraped_data['Tianjin']
-        hf_n = self.all_scraped_data['Hefei']
-        fz_n = self.all_scraped_data['Fuzhou']
-        xm_n = self.all_scraped_data['Xiamen']
+        shzh_n = self.all_scraped_data['Shenzhen'] if 'Shenzhen' in self.all_scraped_data else "-"
+        gz_n = self.all_scraped_data['Guangzhou'] if 'Guangzhou' in self.all_scraped_data else "-"
+        sz_n = self.all_scraped_data['Suzhou'] if 'Suzhou' in self.all_scraped_data else "-"
+        hz_n = self.all_scraped_data['Hangzhou'] if 'Hangzhou' in self.all_scraped_data else "-"
+        nj_n = self.all_scraped_data['Nanjing'] if 'Nanjing' in self.all_scraped_data else "-"
+        xa_n = self.all_scraped_data['Xi_an'] if 'Xi_an' in self.all_scraped_data else "-"
+        cd_n = self.all_scraped_data['Chengdu'] if 'Chengdu' in self.all_scraped_data else "-"
+        cq_n = self.all_scraped_data['Chongqing'] if 'Chongqing' in self.all_scraped_data else "-"
+        tj_n = self.all_scraped_data['Tianjin'] if 'Tianjin' in self.all_scraped_data else "-"
+        hf_n = self.all_scraped_data['Hefei'] if 'Hefei' in self.all_scraped_data else "-"
+        fz_n = self.all_scraped_data['Fuzhou'] if 'Fuzhou' in self.all_scraped_data else "-"
+        xm_n = self.all_scraped_data['Xiamen'] if 'Xiamen' in self.all_scraped_data else "-"
         wh_n = "-"
-        cs_n = self.all_scraped_data['Changsha']
+        cs_n = self.all_scraped_data['Changsha'] if 'Changsha' in self.all_scraped_data else "-"
 
         # Save the numbers to a xlsx file
         city_resale_nlist = \
