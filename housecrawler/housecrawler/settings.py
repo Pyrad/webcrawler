@@ -21,6 +21,14 @@ NEWSPIDER_MODULE = "housecrawler.spiders"
 # Change this to False to ignore robot.txt rules Pyrad@2024-03-26
 ROBOTSTXT_OBEY = False
 
+# To fix the following error
+#    2024-05-31 22:56:10 [scrapy.spidermiddlewares.httperror]
+#    INFO: Ignoring response <418 https://su.ke.com/ershoufang/>: HTTP status code is not handled or not allowed
+#    INFO: ...
+# Since code "418" is reported, so add it to the variable (list) HTTPERROR_ALLOWED_CODES, as below
+# Added by Pyrad@2024-05-31
+HTTPERROR_ALLOWED_CODES = [418]
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 

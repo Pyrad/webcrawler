@@ -368,12 +368,22 @@ class HouseSpider(scrapy.Spider):
         print(f"g commit -am \"Realestate Update resale numbers {dt_string}\"")
         print("============================")
 
+    def get_headers(self):
+        """
+        Get a dict for headers, to avoid robot.txt limit
+        2024-05-31 23:25
+        """
+        headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+                'Accept-Language': 'en-US,en;q=0.5',
+        }
+        return headers
 
     def start_requests(self):
         # Set urls list for scraping
         urls = [cur_url for _, cur_url in self.url_dict.items()]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+            yield scrapy.Request(url=url, callback=self.parse, headers=self.get_headers())
 
     def parse(self, response):
 
@@ -403,6 +413,11 @@ class HouseSpider(scrapy.Spider):
         # print(f"[PYARD] Total house number = {response.xpath(total_num_xpath).getall()}")
 
         data_got = response.xpath(city_xpath).getall()
+        print(f"[PYARD] type(data_got) = {type(data_got)}")
+        print(f"[PYARD] len(data_got) = {len(data_got)}")
+
+        #return
+
         if len(data_got) > 0:
             city_name = response.xpath(city_xpath).getall()[0]
             total_num = int(response.xpath(total_num_xpath).getall()[0])
