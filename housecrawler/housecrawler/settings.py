@@ -27,7 +27,7 @@ ROBOTSTXT_OBEY = False
 #    INFO: ...
 # Since code "418" is reported, so add it to the variable (list) HTTPERROR_ALLOWED_CODES, as below
 # Added by Pyrad@2024-05-31
-HTTPERROR_ALLOWED_CODES = [418]
+HTTPERROR_ALLOWED_CODES = [418, 200]
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
